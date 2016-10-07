@@ -9,6 +9,18 @@
   ((m/list 1 '?foo 3) test-list) => [[1 '?foo 3] [1 2 3]]
   ((m/list 1 '& '?rest) test-list) => [[1 '?rest] [1 '(2 3)]])
 
+(def test-vec [1 2 3])
+(fact "Matching against vectors"
+  ((m/vector 1 2 3) '(1 2 3)) => nil
+  ((m/vector 1 2 3) test-vec) => [[1 2 3] [1 2 3]]
+  ((m/vector 1 '?foo 3) test-vec) => [[1 '?foo 3] [1 2 3]]
+  ((m/vector 1 '& '?rest) test-vec) => [[1 '?rest] [1 '(2 3)]])
+
+(fact "Matching instances of some element"
+  ((m/instance? clojure.lang.PersistentList) '(1 2) ) => []
+  ((m/instance? clojure.lang.PersistentList) [1 2] ) => nil
+  ((m/instance? 10) [1 2] ) => nil)
+
 (facts "Using match macro"
   (fact "matching without vars"
     (m/match test-list
