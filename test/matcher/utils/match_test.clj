@@ -1,11 +1,13 @@
 (ns matcher.utils.match-test
   (:require [midje.sweet :refer :all]
             [matcher.utils.match :as utils]
-            [matcher.matchers :as m]))
+            [matcher.matchers :as m]
+            [clojure.core.unify :as u]))
 
 (def foo 10)
 (fact "parses args correctly from matchers"
-  (utils/parse-args '(m/list ?arg _ 10 foo)) => '(m/list '?arg '_ 10 foo))
+  (utils/parse-args '(m/list ?arg _ 10 foo)) => '(m/list '?arg '_ 10 foo)
+  (utils/parse-args '(m/list ?arg _ (m/list ?b) foo)) => '(m/list '?arg '_ (m/list '?b) foo))
 
 (def test-list (list 1 2 3))
 (facts "parses match args correcly"
@@ -17,8 +19,37 @@
 (facts "parses inner match args correctly"
   (utils/apply-match inner-list (m/list 1 (m/list 2 3) 4))
   => [[1 [2 3] 4] [1 [2 3] 4]]
+  (utils/apply-match inner-list (m/list '?a (m/list '?a '?b) 4))
+  => [['?a ['?a '?b] 4] [1 [2 3] 4]]
   (utils/apply-match test-list (m/list 1 (m/list 2 3) 4)) => nil)
 
+(facts "matching patterns"
+  (background
+    (gensym) => 'foo)
+
+  (fact "adds an let if there are unbound vars"
+    (utils/wrap-let 'test-list '(m/list 10 (m/list 20) 30) ':foo)
+    => `(if-let [~'foo (some->> (utils/apply-match ~'test-list (~'m/list 10
+                                                                         (~'m/list 20)
+                                                                         30))
+                                (apply u/unify))]
+         :foo)
+
+    (utils/wrap-let 'test-list '(m/list ?a (m/list ?a ?b) _) '(+ a b))
+    => `(if-let [~'foo (some->> (utils/apply-match ~'test-list (~'m/list ~''?a
+                                                                         (~'m/list ~''?a ~''?b)
+                                                                         ~''_))
+                                (apply u/unify))]
+          (let [~'a (~''?a ~'foo)
+                ~'b (~''?b ~'foo)]
+            (~'+ ~'a ~'b)))))
+
+  ; (fact "expands macro in a sane way"
+  ;   (utils/match* 'test-list
+  ;     '((m/list 1 2) :foo
+  ;       (m/list (m/list ?a) ?b)))
+  ;   => `(cond
+  ;         (utils/apply-match '(m/list '?a)))))
   ; (utils/apply-match test-list (m/list)))
   ; (background
   ;   (gensym) => 'foo)
