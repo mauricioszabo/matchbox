@@ -44,8 +44,28 @@
                 ~'b (~''?b ~'foo)]
             (~'+ ~'a ~'b)))))
 
-  ; (fact "expands macro in a sane way"
-  ;   (utils/match* 'test-list
+(facts "pattern matching without macros"
+  (fact "expands macro in a sane way"
+    (utils/match* 'test-list
+      '(m/list 10) :foo)
+    => `(if-let [f ..first-clause..]
+          :foo
+          (throw (IllegalArgumentException. "No match")))
+    (provided
+      (utils/wrap-let 'test-list '(m/list 10) :foo) => `(if-let [f ..first-clause..] :foo)))
+
+  (fact "expands macro with two matches"
+    (utils/match* 'test-list
+      '(m/list 10) :foo
+      '(m/list 20) :bar)
+    => `(if-let [f ..first-clause..]
+          :foo
+          (if-let [s ..second-clause..]
+            :bar
+            (throw (IllegalArgumentException. "No match"))))
+    (provided
+      (utils/wrap-let 'test-list '(m/list 10) :foo) => `(if-let [f ..first-clause..] :foo)
+      (utils/wrap-let 'test-list '(m/list 20) :bar) => `(if-let [s ..second-clause..] :bar))))
   ;     '((m/list 1 2) :foo
   ;       (m/list (m/list ?a) ?b)))
   ;   => `(cond

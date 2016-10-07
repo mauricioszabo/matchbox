@@ -54,3 +54,9 @@
     `(if-let [~var (some->> (apply-match ~obj ~norm)
                             (apply u/unify))]
        ~let-clause)))
+
+(defn match* [obj & matches]
+  (assert (even? (count matches)) "Matches must be even")
+  (let [[match-fn then] matches
+        let-fn (wrap-let obj match-fn then)]
+    (concat let-fn `((throw (IllegalArgumentException. "No match"))))))
