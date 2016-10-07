@@ -28,21 +28,23 @@
     (gensym) => 'foo)
 
   (fact "adds an let if there are unbound vars"
-    (utils/wrap-let 'test-list '(m/list 10 (m/list 20) 30) ':foo)
+    (utils/wrap-let 'test-list '(m/list 10 (m/list 20) 30) ':foo ':bar)
     => `(if-let [~'foo (some->> (utils/apply-match ~'test-list (~'m/list 10
                                                                          (~'m/list 20)
                                                                          30))
                                 (apply u/unify))]
-         :foo)
+         :foo
+         :bar)
 
-    (utils/wrap-let 'test-list '(m/list ?a (m/list ?a ?b) _) '(+ a b))
+    (utils/wrap-let 'test-list '(m/list ?a (m/list ?a ?b) _) '(+ a b) ':bar)
     => `(if-let [~'foo (some->> (utils/apply-match ~'test-list (~'m/list ~''?a
                                                                          (~'m/list ~''?a ~''?b)
                                                                          ~''_))
                                 (apply u/unify))]
           (let [~'a (~''?a ~'foo)
                 ~'b (~''?b ~'foo)]
-            (~'+ ~'a ~'b)))))
+            (~'+ ~'a ~'b))
+          :bar)))
 
 (facts "pattern matching without macros"
   (fact "expands macro in a sane way"
@@ -52,43 +54,25 @@
           :foo
           (throw (IllegalArgumentException. "No match")))
     (provided
-      (utils/wrap-let 'test-list '(m/list 10) :foo) => `(if-let [f ..first-clause..] :foo)))
+      (utils/wrap-let 'test-list '(m/list 10) :foo `(throw (IllegalArgumentException. "No match")))
+      => `(if-let [f ..first-clause..] :foo (throw (IllegalArgumentException. "No match")))))
 
   (fact "expands macro with two matches"
     (utils/match* 'test-list
       '(m/list 10) :foo
       '(m/list 20) :bar)
-    => `(if-let [f ..first-clause..]
-          :foo
-          (if-let [s ..second-clause..]
-            :bar
-            (throw (IllegalArgumentException. "No match"))))
+    => `(if ..c1.. ..10.. (if ..c2.. ..20.. ..throw..))
     (provided
-      (utils/wrap-let 'test-list '(m/list 10) :foo) => `(if-let [f ..first-clause..] :foo)
-      (utils/wrap-let 'test-list '(m/list 20) :bar) => `(if-let [s ..second-clause..] :bar))))
-  ;     '((m/list 1 2) :foo
-  ;       (m/list (m/list ?a) ?b)))
-  ;   => `(cond
-  ;         (utils/apply-match '(m/list '?a)))))
-  ; (utils/apply-match test-list (m/list)))
-  ; (background
-  ;   (gensym) => 'foo)
-  ;
-  ; (fact ""))
-  ;
-  ;   ; (fact "combines results and matches then"
-  ;   ;   (macroexpand-1 '(m/match test-list
-  ;   ;                     (m/list 1 2 3) :foo))
-  ;   ;   => `(if-let [~'foo (~'m/list ~'test-list 1 2 3)]
-  ;   ;         :foo
-  ;   ;         (throw (IllegalArgumentException. "No match")))))
-  ;
-  ; (fact "extracting values for pattern-matching"
-  ;   (m/extract-vals test-list (m/list 1 2)) => nil
-  ;   (m/extract-vals test-list (m/list 1 2 3)) => {:vals [[1 1] [2 2] [3 3]]}
-  ;   (m/extract-vals test-list (m/list ?b ?a 3)) => {:bindings [['b 1]
-  ;                                                              ['a 2]]
-  ;                                                   :vals [[3 3]]}
-  ;   (m/extract-vals test-list (m/list ?b ?a ?b)) => {:bindings [['b 1]
-  ;                                                               ['a 2]]
-  ;                                                    :vals [['b 3]]})
+      (utils/wrap-let 'test-list '(m/list 20) :bar `(throw (IllegalArgumentException. "No match")))
+      => `(if ..c2.. ..20.. ..throw..)
+      (utils/wrap-let 'test-list '(m/list 10) :foo `(if ..c2.. ..20.. ..throw..))
+      => `(if ..c1.. ..10.. (if ..c2.. ..20.. ..throw..))))
+
+  (fact "adds catch-all"
+    (utils/match* 'test-list
+      '(m/list 10) :foo
+      '_ :bar)
+    => `(if ..c1.. ..10.. :bar)
+    (provided
+      (utils/wrap-let 'test-list '(m/list 10) :foo :bar)
+      => `(if ..c1.. ..10.. :bar))))

@@ -44,7 +44,7 @@
                       vec)]
     `(let ~bindings ~then)))
 
-(defn wrap-let [obj match-fn then]
+(defn wrap-let [obj match-fn then else]
   (let [var (gensym)
         norm (parse-args match-fn)
         unbound-vars (filter #(if (symbol? %) (-> % name (.startsWith "?"))) (flatten match-fn))
@@ -53,10 +53,16 @@
                      (create-let unbound-vars var then))]
     `(if-let [~var (some->> (apply-match ~obj ~norm)
                             (apply u/unify))]
-       ~let-clause)))
+       ~let-clause
+       ~else)))
 
 (defn match* [obj & matches]
   (assert (even? (count matches)) "Matches must be even")
-  (let [[match-fn then] matches
-        let-fn (wrap-let obj match-fn then)]
-    (concat let-fn `((throw (IllegalArgumentException. "No match"))))))
+  (let [[match-fn then & rest] matches
+        else (cond
+               (= match-fn '_) then
+               (empty? rest) `(throw (IllegalArgumentException. "No match"))
+               :else (apply match* obj rest))]
+    (if (= match-fn '_)
+      else
+      (wrap-let obj match-fn then else))))
