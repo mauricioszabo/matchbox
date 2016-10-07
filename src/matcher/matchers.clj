@@ -1,5 +1,5 @@
 (ns matcher.matchers
-  (:refer-clojure :exclude [list vector instance? map])
+  (:refer-clojure :exclude [list vector instance? map pmap])
   (:require [clojure.core.unify :as u]
             [matcher.utils.match :as utils]))
 
@@ -24,8 +24,17 @@
 
 (defn map [pattern]
   (fn [m]
+    (when (and (map? m) (map? pattern)) [pattern m])))
+
+(defn pmap [pattern]
+  (fn [m]
     (when (and (map? m) (map? pattern))
-      [pattern m])))
+      (let [vs (-> pattern vals set)
+            partial-map (->> m
+                             (filter (fn [[k v]] (or (contains? pattern k)
+                                                     (contains? vs v))))
+                             (into {}))]
+        [pattern partial-map]))))
 
 (defn instance? [class]
   (fn [obj]
@@ -35,3 +44,5 @@
 
 (defmacro match [obj & matches]
   (apply utils/match* obj matches))
+
+(u/unify {'?a '?b} {:a 10, :b 20})

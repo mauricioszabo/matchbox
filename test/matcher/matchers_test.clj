@@ -21,7 +21,12 @@
   (fact "matches against full map"
     ((m/map {:a '?a, '?b 20}) test-map) => [{:a '?a, '?b 20} {:a 10 :b 20}]
     ((m/map {:a '?a, '?b 20}) test-vec) => nil
-    ((m/map [1 2 3]) test-map) => nil))
+    ((m/map [1 2 3]) test-map) => nil)
+
+  (fact "matches partially against a map"
+    ((m/pmap {:a '?a}) test-map) => [{:a '?a} {:a 10}]
+    ((m/pmap {'?a 20}) test-map) => [{'?a 20} {:b 20}]
+    ((m/pmap {'?a '?b}) test-map) => [{'?a '?b} (into {} (take 1 test-map))]))
 
 (fact "Matching instances of some element"
   ((m/instance? clojure.lang.PersistentList) '(1 2) ) => []
