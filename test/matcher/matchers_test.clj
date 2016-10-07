@@ -16,6 +16,13 @@
   ((m/vector 1 '?foo 3) test-vec) => [[1 '?foo 3] [1 2 3]]
   ((m/vector 1 '& '?rest) test-vec) => [[1 '?rest] [1 '(2 3)]])
 
+(def test-map {:a 10, :b 20})
+(facts "Matching against maps"
+  (fact "matches against full map"
+    ((m/map {:a '?a, '?b 20}) test-map) => [{:a '?a, '?b 20} {:a 10 :b 20}]
+    ((m/map {:a '?a, '?b 20}) test-vec) => nil
+    ((m/map [1 2 3]) test-map) => nil))
+
 (fact "Matching instances of some element"
   ((m/instance? clojure.lang.PersistentList) '(1 2) ) => []
   ((m/instance? clojure.lang.PersistentList) [1 2] ) => nil

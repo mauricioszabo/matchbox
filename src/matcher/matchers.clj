@@ -1,5 +1,5 @@
 (ns matcher.matchers
-  (:refer-clojure :exclude [list vector instance?])
+  (:refer-clojure :exclude [list vector instance? map])
   (:require [clojure.core.unify :as u]
             [matcher.utils.match :as utils]))
 
@@ -21,6 +21,11 @@
 
 (defn vector [ & rest]
   (fn [m] (when (vector? m) (check-elements m rest))))
+
+(defn map [pattern]
+  (fn [m]
+    (when (and (map? m) (map? pattern))
+      [pattern m])))
 
 (defn instance? [class]
   (fn [obj]
