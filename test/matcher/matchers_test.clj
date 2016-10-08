@@ -17,16 +17,26 @@
   ((m/vector 1 '& '?rest) test-vec) => [[1 '?rest] [1 '(2 3)]])
 
 (def test-map {:a 10, :b 20})
-(facts "Matching against maps"
-  (fact "matches against full map"
-    ((m/map {:a '?a, '?b 20}) test-map) => [{:a '?a, '?b 20} {:a 10 :b 20}]
-    ((m/map {:a '?a, '?b 20}) test-vec) => nil
-    ((m/map [1 2 3]) test-map) => nil)
+(fact "Matching using unifier only"
+  ((m/matches {:a '?a, '?b 20}) test-map) => [{:a '?a, '?b 20} {:a 10 :b 20}]
+  ((m/matches {:a '?a, '?b 20}) test-vec) => [{:a '?a, '?b 20} [1 2 3]]
+  ((m/matches [1 2 3]) test-vec) => [[1 2 3] [1 2 3]])
 
-  (fact "matches partially against a map"
-    ((m/pmap {:a '?a}) test-map) => [{:a '?a} {:a 10}]
-    ((m/pmap {'?a 20}) test-map) => [{'?a 20} {:b 20}]
-    ((m/pmap {'?a '?b}) test-map) => [{'?a '?b} (into {} (take 1 test-map))]))
+(facts "Matching against maps"
+  (fact "simple matches"
+    ((m/map :a '?a) test-vec) => nil
+    ((m/map) test-map) => [[] []]
+    ((m/map :a '?a) test-map) => [[[[:a] ['?a]]] [[[:a] [10]]]]
+    ((m/map '?a 20) test-map) => [[[['?a] [20]]] [[[:b] [20]]]]
+    ((m/map '?a '?b) test-map) => [[[['?a] ['?b]]] [[[:a] [10]]]]
+    ((m/map '?a 20 '?b 10) test-map)
+    => [[[['?a] [20]] [['?b] [10]]] [[[:b] [20]] [[:a] [10]]]])
+
+  (fact "composite matches"
+    ; ((m/map :a (m/list)) test-map) => nil
+    ; ((m/map :a 10 :b (m/list)) test-map) => nil
+    ((m/map '?a (m/list '& '_)) {:a 10, :b 20, :c '(1 2 3)})
+    => [[[['?a] ['_]]] [[[:c] ['(1 2 3)]]]]))
 
 (fact "Matching instances of some element"
   ((m/instance? clojure.lang.PersistentList) '(1 2) ) => []
