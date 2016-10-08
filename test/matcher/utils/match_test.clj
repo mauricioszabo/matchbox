@@ -13,7 +13,11 @@
 (facts "parses match args correcly"
   (utils/apply-match test-list (m/list 1 2 3)) => [[1 2 3] [1 2 3]]
   (utils/apply-match test-list (m/list '?a 2 3)) => [['?a 2 3] [1 2 3]]
-  (utils/apply-match test-list (m/list 1 2)) => nil)
+  (utils/apply-match test-list (m/list 1 2)) => nil
+
+  (fact "parses single value matchers"
+    (utils/apply-match nil nil?) => [[] []]
+    (utils/apply-match nil nil) => [[nil] [nil]]))
 
 (def inner-list (list 1 (list 2 3) 4))
 (facts "parses inner match args correctly"

@@ -31,10 +31,17 @@
             (recur rest-ls rest-rs acc)))))))
 
 (defn apply-match [obj match-fn]
-  (let [res (match-fn obj)]
-    (if (vector? res)
-      (apply-inner res)
-      nil)))
+  (if (fn? match-fn)
+    (let [res (match-fn obj)]
+      (cond
+        (vector? res) (apply-inner res)
+        (not res) nil
+        :else [[] []]))
+    [[match-fn] [obj]]))
+
+(defn match-and-unify [obj match-fn]
+  (some->> (apply-match obj match-fn)
+           (apply u/unify)))
 
 (defn- create-let [unbound-vars sym then]
   (let [bindings (->> unbound-vars
@@ -43,10 +50,6 @@
                                        `('~v ~sym)]))
                       vec)]
     `(let ~bindings ~then)))
-
-(defn match-and-unify [obj match-fn]
-  (some->> (apply-match obj match-fn)
-           (apply u/unify)))
 
 (defn wrap-let [obj match-fn then else]
   (let [var (gensym)
