@@ -29,18 +29,16 @@
 
   (fact "adds an let if there are unbound vars"
     (utils/wrap-let 'test-list '(m/list 10 (m/list 20) 30) ':foo ':bar)
-    => `(if-let [~'foo (some->> (utils/apply-match ~'test-list (~'m/list 10
-                                                                         (~'m/list 20)
-                                                                         30))
-                                (apply u/unify))]
+    => `(if-let [~'foo (utils/match-and-unify ~'test-list (~'m/list 10
+                                                                    (~'m/list 20)
+                                                                    30))]
          :foo
          :bar)
 
     (utils/wrap-let 'test-list '(m/list ?a (m/list ?a ?b) _) '(+ a b) ':bar)
-    => `(if-let [~'foo (some->> (utils/apply-match ~'test-list (~'m/list ~''?a
-                                                                         (~'m/list ~''?a ~''?b)
-                                                                         ~''_))
-                                (apply u/unify))]
+    => `(if-let [~'foo (utils/match-and-unify ~'test-list (~'m/list ~''?a
+                                                                    (~'m/list ~''?a ~''?b)
+                                                                    ~''_))]
           (let [~'a (~''?a ~'foo)
                 ~'b (~''?b ~'foo)]
             (~'+ ~'a ~'b))
