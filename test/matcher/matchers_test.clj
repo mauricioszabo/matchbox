@@ -49,6 +49,11 @@
       10 :foo
       20 :bar) => :foo)
 
+  (fact "matching predicate fns"
+    (m/match 20
+      odd? :is-odd
+      even? :is-even) => :is-even)
+
   (fact "matching without vars"
     (m/match test-list
       (m/list 1 2 1) :foo
