@@ -74,5 +74,3 @@
 
 (defmacro match [obj & matches]
   (apply utils/match* obj matches))
-
-(u/unify {'?a '?b} {:a 10, :b 20})
