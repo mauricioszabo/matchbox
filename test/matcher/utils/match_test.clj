@@ -21,6 +21,8 @@
 
 (def inner-list (list 1 (list 2 3) 4))
 (facts "parses inner match args correctly"
+  (utils/apply-match 10 20)
+  => [[20] [10]]
   (utils/apply-match inner-list (m/list 1 (m/list 2 3) 4))
   => [[1 [2 3] 4] [1 [2 3] 4]]
   (utils/apply-match inner-list (m/list '?a (m/list '?a '?b) 4))
@@ -30,6 +32,12 @@
 (facts "matching patterns"
   (background
     (gensym) => 'foo)
+
+  (fact "unwraps code if there are no sexps on match side"
+    (utils/wrap-let 10 10 :foo :bar)
+    => `(if-let [~'foo (utils/match-and-unify 10 10)]
+         :foo
+         :bar))
 
   (fact "adds an let if there are unbound vars"
     (utils/wrap-let 'test-list '(m/list 10 (m/list 20) 30) ':foo ':bar)

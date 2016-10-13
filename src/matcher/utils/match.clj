@@ -53,7 +53,7 @@
 
 (defn wrap-let [obj match-fn then else]
   (let [var (gensym)
-        norm-fn (parse-args match-fn)
+        norm-fn (cond-> match-fn (coll? match-fn) parse-args)
         unbound-vars (filter #(if (symbol? %) (-> % name (.startsWith "?"))) (flatten match-fn))
         let-clause (if (empty? unbound-vars)
                      then

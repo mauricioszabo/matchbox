@@ -44,6 +44,11 @@
   ((m/instance? 10) [1 2] ) => nil)
 
 (facts "Using match macro"
+  (fact "matching literal values"
+    (m/match 10
+      10 :foo
+      20 :bar) => :foo)
+
   (fact "matching without vars"
     (m/match test-list
       (m/list 1 2 1) :foo
