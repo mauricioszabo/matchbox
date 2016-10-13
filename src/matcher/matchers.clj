@@ -41,20 +41,15 @@
   (disj s m))
 (flatten (seq{:a 10 :b 20}))
 
-; ((m/map '?a (m/list & '_)) {:a 10, :b 20, :c '(1 2 3)})
-; (utils/apply-match :a '?a)
-; (utils/apply-match '(1 2 3) (list '& '_))
-
 (defn- match-kv [elem [pattern-k pattern-v]]
   (let [[k v] elem
-        k-match (utils/apply-match k pattern-k)
-        v-match (utils/apply-match v pattern-v)
-        uni #(some-> % (apply u/unify k-match))]
-    (println elem pattern-k pattern-v)
-    (println k-match v-match)
-    (when (and (apply u/unify k-match) (apply u/unify v-match))
-      (let [[ls-k rs-k] k-match
-            [ls-v rs-v] v-match]
+        k-match (utils/match-and-unify k pattern-k)
+        v-match (utils/match-and-unify v pattern-v)]
+    (when (and k-match v-match)
+      (let [ls-k (-> k-match keys vec)
+            rs-k (-> k-match vals vec)
+            ls-v (-> v-match keys vec)
+            rs-v (-> v-match vals vec)]
         [elem [ls-k ls-v] [rs-k rs-v]]))))
 
 (defn map [ & pattern]
