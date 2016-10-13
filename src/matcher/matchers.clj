@@ -25,22 +25,6 @@
 (defn matches [pattern]
   (fn [obj] [pattern obj]))
 
-; (defn map [ & pattern]
-;   (fn [obj]
-;     (when (and (map? obj))
-;       (let [forms (for [p (partition 2 pattern)
-;                         o obj
-;                         :let [match (utils/match-and-unify o (matches p))]
-;                         :when match]
-;                     [p o])]
-;         (when (not-empty forms)
-;           (reduce (fn [[lss rss] [ls rs]] [(conj lss ls) (conj rss rs)]) [] forms))))))
-
-(let [s (set {:a 10 :b 20})
-      m (some #{[:a 10]} s)]
-  (disj s m))
-(flatten (seq{:a 10 :b 20}))
-
 (defn- match-kv [elem [pattern-k pattern-v]]
   (let [[k v] elem
         k-match (utils/match-and-unify k pattern-k)
