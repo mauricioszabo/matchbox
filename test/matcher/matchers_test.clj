@@ -43,6 +43,13 @@
   ((m/instance? clojure.lang.PersistentList) [1 2] ) => nil
   ((m/instance? 10) [1 2] ) => nil)
 
+(facts "boolean matches"
+  (fact "or applies anyone that matches"
+    ((m/or (m/list 1 '?l 3) (m/list 1 '?v 3)) test-vec) => nil
+    ((m/or (m/list 1 '?l 3) (m/vector 1 '?v 3)) test-vec) => [[[1 '?v 3]] [[1 2 3]]]
+    ((m/or (m/vector '?first 2 3) (m/vector 1 '?v 3)) test-vec)
+    => [[['?first 2 3] [1 '?v 3]] [[1 2 3] [1 2 3]]]))
+
 (facts "Using match macro"
   (fact "matching literal values"
     (m/match 10

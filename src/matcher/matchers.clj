@@ -1,6 +1,7 @@
 (ns matcher.matchers
-  (:refer-clojure :exclude [list vector instance? map pmap])
-  (:require [clojure.core.unify :as u]
+  (:refer-clojure :exclude [list vector instance? map pmap or and])
+  (:require [clojure.core :as core]
+            [clojure.core.unify :as u]
             [matcher.utils.match :as utils]))
 
 (defn- check-elements [m rest]
@@ -29,7 +30,7 @@
   (let [[k v] elem
         k-match (utils/match-and-unify k pattern-k)
         v-match (utils/match-and-unify v pattern-v)]
-    (when (and k-match v-match)
+    (when (core/and k-match v-match)
       (let [ls-k (-> k-match keys vec)
             rs-k (-> k-match vals vec)
             ls-v (-> v-match keys vec)
@@ -38,7 +39,7 @@
 
 (defn map [ & pattern]
   (fn [obj]
-    (when (and (map? obj) (even? (count pattern)))
+    (when (core/and (map? obj) (even? (count pattern)))
       (loop [[pattern & forms] (partition 2 pattern)
              map (set obj)
              [ls rs] [[] []]]
@@ -46,15 +47,25 @@
           (let [[m l r] (some #(match-kv % pattern) map)
                 submap (disj map m)
                 acc [(conj ls l) (conj rs r)]]
-            (and m (recur forms submap acc)))
+            (core/and m (recur forms submap acc)))
           [ls rs])))))
-
 
 (defn instance? [class]
   (fn [obj]
-    (if (and (clojure.core/instance? java.lang.Class class)
-             (clojure.core/instance? class obj))
+    (if (core/and (clojure.core/instance? java.lang.Class class)
+                  (clojure.core/instance? class obj))
       [])))
+
+(defn or [ & matchers]
+  (fn [obj]
+    (let [f (fn [[lss rss] matcher]
+              (let [match-obj (utils/apply-match obj matcher)
+                    [ls rs] match-obj]
+                (if (nil? match-obj)
+                  [lss rss]
+                  [(-> lss vec (conj ls)) (-> rss vec (conj rs))])))
+          forms (reduce f [] matchers)]
+      (when-not (-> forms first nil?) forms))))
 
 (defmacro match [obj & matches]
   (apply utils/match* obj matches))
