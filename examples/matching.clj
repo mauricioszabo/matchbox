@@ -17,6 +17,23 @@
            (m/list ?f ?s even? even?) (str "List, last two are even, sum of first two: " (+ f s))
            _ "Didn't find a match"))
 
+; Predicate matchers
+(println (m/match 20
+           odd? "It's odd"
+           even? "It's even"))
+
+(println (m/match "20"
+           (m/satisfies odd?) "It's odd"
+           (m/satisfies even?) "It's even"
+           _ "It's not a number"))
+
+; PLEASE note that you probably want to extract the matcher below to a function.
+; Matchers can be very sensitive about inner functions and such, and we don't expect
+; to use "filter", "some", and other complex operations inside it.
+(println (m/match some-list
+           (m/satisfies #(some #{-1 -2} %) ?r) (str "Negative number found: " r)
+           (m/satisfies #(some #{3 4 50 40} %) ?r) (str "Positive number found: " r)))
+
 ; A pratical example
 (def some-ast
   '(+ (* 10 2) (* 20 (+ 30 20))))
