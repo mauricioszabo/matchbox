@@ -1,6 +1,6 @@
-(ns matcher.matchers-test
+(ns matchbox.matchers-test
   (:require [midje.sweet :refer :all]
-            [matcher.matchers :as m]
+            [matchbox.matchers :as m]
             [clojure.core.unify :as u]))
 
 (defn match-and-unify [ & {:as map}]
@@ -64,7 +64,7 @@
 
   ((m/record 'Example3 '?a '?b '?c) test-rec) => dont-match
   ((m/record java.lang.Byte '?a '?b '?c) test-rec) => dont-match
-  ((m/record matcher.matchers_test.Example '?a '?b '?c) test-rec)
+  ((m/record matchbox.matchers_test.Example '?a '?b '?c) test-rec)
   => (match-and-unify '?a 10 '?b 20 '?c 30))
 
 (facts "boolean matches"

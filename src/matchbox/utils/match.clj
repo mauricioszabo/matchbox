@@ -1,11 +1,12 @@
-(ns matcher.utils.match
+(ns matchbox.utils.match
   (:require [clojure.core.unify :as u]
             [clojure.string :as str]))
 
 (defn parse-args [[fun & args]]
   (let [parsed (map (fn [a]
                       (cond
-                        (and (symbol? a) (->> a name (re-find #"^[\?_]"))) `(~'quote ~a)
+                        (and (symbol? a) (->> a name (re-find #"^\?"))) `(~'quote ~a)
+                        (or (= a '_) (= a '&)) `(~'quote ~a)
                         (coll? a) (parse-args a)
                         :else a))
                     args)]

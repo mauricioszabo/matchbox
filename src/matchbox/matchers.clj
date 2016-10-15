@@ -1,7 +1,7 @@
-(ns matcher.matchers
+(ns matchbox.matchers
   (:refer-clojure :exclude [list vector instance? map pmap or and])
   (:require [clojure.core :as core]
-            [matcher.utils.match :as utils]))
+            [matchbox.utils.match :as utils]))
 
 (defn- check-elements [m rest]
   (let [[before after] (split-with #(not= % '&) rest)
