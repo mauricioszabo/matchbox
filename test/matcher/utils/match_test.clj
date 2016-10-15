@@ -13,10 +13,16 @@
 (facts "parses match args correcly"
   (utils/apply-match test-list (m/list 1 2 3)) => [[1 2 3] [1 2 3]]
   (utils/apply-match test-list (m/list '?a 2 3)) => [['?a 2 3] [1 2 3]]
-  (utils/apply-match test-list (m/list 1 2)) => nil)
+  (utils/apply-match test-list (m/list 1 2)) => nil
+
+  (fact "parses single value matchers"
+    (utils/apply-match nil nil?) => [[] []]
+    (utils/apply-match nil nil) => [[nil] [nil]]))
 
 (def inner-list (list 1 (list 2 3) 4))
 (facts "parses inner match args correctly"
+  (utils/apply-match 10 20)
+  => [[20] [10]]
   (utils/apply-match inner-list (m/list 1 (m/list 2 3) 4))
   => [[1 [2 3] 4] [1 [2 3] 4]]
   (utils/apply-match inner-list (m/list '?a (m/list '?a '?b) 4))
@@ -27,20 +33,24 @@
   (background
     (gensym) => 'foo)
 
+  (fact "unwraps code if there are no sexps on match side"
+    (utils/wrap-let 10 10 :foo :bar)
+    => `(if-let [~'foo (utils/match-and-unify 10 10)]
+         :foo
+         :bar))
+
   (fact "adds an let if there are unbound vars"
     (utils/wrap-let 'test-list '(m/list 10 (m/list 20) 30) ':foo ':bar)
-    => `(if-let [~'foo (some->> (utils/apply-match ~'test-list (~'m/list 10
-                                                                         (~'m/list 20)
-                                                                         30))
-                                (apply u/unify))]
+    => `(if-let [~'foo (utils/match-and-unify ~'test-list (~'m/list 10
+                                                                    (~'m/list 20)
+                                                                    30))]
          :foo
          :bar)
 
     (utils/wrap-let 'test-list '(m/list ?a (m/list ?a ?b) _) '(+ a b) ':bar)
-    => `(if-let [~'foo (some->> (utils/apply-match ~'test-list (~'m/list ~''?a
-                                                                         (~'m/list ~''?a ~''?b)
-                                                                         ~''_))
-                                (apply u/unify))]
+    => `(if-let [~'foo (utils/match-and-unify ~'test-list (~'m/list ~''?a
+                                                                    (~'m/list ~''?a ~''?b)
+                                                                    ~''_))]
           (let [~'a (~''?a ~'foo)
                 ~'b (~''?b ~'foo)]
             (~'+ ~'a ~'b))
