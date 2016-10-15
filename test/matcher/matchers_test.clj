@@ -51,8 +51,17 @@
 
 (fact "Matching instances of some element"
   ((m/instance? clojure.lang.PersistentList) '(1 2) ) => []
-  ((m/instance? clojure.lang.PersistentList) [1 2] ) => nil
-  ((m/instance? 10) [1 2] ) => nil)
+  ((m/instance? clojure.lang.PersistentList) [1 2] ) => dont-match
+  ((m/instance? 10) [1 2] ) => dont-match)
+
+(defrecord Example [a b c])
+(defrecord Example2 [a b c])
+(def test-rec (->Example 10 20 30))
+(fact "Matching records"
+  ((m/record Example '?a '?b) test-rec) => dont-match
+  ((m/record Example2 '?a '?b '?c) test-rec) => dont-match
+  ((m/record 'Example3 '?a '?b '?c) test-rec) => dont-match
+  ((m/record Example '?a '?b '?c) test-rec) => (match-and-unify '?a 10 '?b 20 '?c 30))
 
 (facts "boolean matches"
   (fact "or applies first rule that matches"
