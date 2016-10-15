@@ -68,5 +68,18 @@
               vs (core/map vals applied)]
           [ks vs])))))
 
+(defmacro record [record & args]
+  (let [arglist (when (symbol? record)
+                  (some-> record name (clojure.string/replace #"^" "->")
+                          symbol resolve meta :arglists first
+                          (->> (core/map keyword) vec)))
+        arguments (vec args)]
+    `(fn [~'obj]
+       (when (core/and ~arglist
+                  (core/instance? ~record ~'obj)
+                  (core/or (= (count ~arguments) 0)
+                           (= (count ~arguments) (count ~arglist))))
+         [~arguments (core/map #(get ~'obj %) ~arglist)]))))
+
 (defmacro match [obj & matches]
   (apply utils/match* obj matches))
