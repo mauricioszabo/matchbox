@@ -7,6 +7,7 @@
 (def foo 10)
 (fact "parses args correctly from matchers"
   (utils/parse-args '(m/list ?arg _ 10 foo)) => '(m/list '?arg '_ 10 foo)
+  (utils/parse-args '(m/list _ & _foo)) => '(m/list '_ '& _foo)
   (utils/parse-args '(m/list ?arg _ (m/list ?b) foo)) => '(m/list '?arg '_ (m/list '?b) foo))
 
 (def test-list (list 1 2 3))
