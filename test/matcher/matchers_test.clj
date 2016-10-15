@@ -1,13 +1,24 @@
 (ns matcher.matchers-test
   (:require [midje.sweet :refer :all]
-            [matcher.matchers :as m]))
+            [matcher.matchers :as m]
+            [clojure.core.unify :as u]))
+
+(defn match-and-unify [ & {:as map}]
+  (fn [obj]
+    (= map (apply u/unify obj))))
+
+(defn dont-match [obj]
+  (or (nil? obj) (nil? (apply u/unify obj))))
+
+(defn match [obj]
+  (= {} (apply u/unify obj)))
 
 (def test-list (list 1 2 3))
 (fact "Matching against lists"
-  ((m/list 1 2 3) [1 2 3]) => nil
-  ((m/list 1 2 3) test-list) => [[1 2 3] [1 2 3]]
-  ((m/list 1 '?foo 3) test-list) => [[1 '?foo 3] [1 2 3]]
-  ((m/list 1 '& '?rest) test-list) => [[1 '?rest] [1 '(2 3)]])
+  ((m/list 1 2 3) [1 2 3]) => dont-match
+  ((m/list 1 2 3) test-list) => match
+  ((m/list 1 '?foo 3) test-list) => (match-and-unify '?foo 2)
+  ((m/list 1 '& '?rest) test-list) => (match-and-unify '?rest '(2 3)))
 
 (def test-vec [1 2 3])
 (fact "Matching against vectors"
@@ -44,11 +55,17 @@
   ((m/instance? 10) [1 2] ) => nil)
 
 (facts "boolean matches"
-  (fact "or applies anyone that matches"
-    ((m/or (m/list 1 '?l 3) (m/list 1 '?v 3)) test-vec) => nil
-    ((m/or (m/list 1 '?l 3) (m/vector 1 '?v 3)) test-vec) => [[[1 '?v 3]] [[1 2 3]]]
-    ((m/or (m/vector '?first 2 3) (m/vector 1 '?v 3)) test-vec)
-    => [[['?first 2 3] [1 '?v 3]] [[1 2 3] [1 2 3]]]))
+  (fact "or applies first rule that matches"
+    ((m/or (m/list 1 '?l 3) (m/list 1 '?v 3)) test-vec) => dont-match
+    ((m/or (m/list 1 '?l 3) (m/vector 1 '?v 3)) test-vec) => (match-and-unify '?v 2)
+    ((m/or (m/vector '?first 2 3) (m/vector 1 '?v 3)) test-vec) => (match-and-unify '?first 1))
+
+  (fact "and applies only if all rules apply"
+    ((m/and (m/vector 1 '?l 3) (m/list 1 1 3)) test-vec) => dont-match
+    ((m/and (m/vector 1 '?v 3) (m/vector 1 2 '?v)) test-vec) => dont-match
+    ((m/and (m/vector 1 '?v1 '?l) (m/vector 1 '?v2 '?l)) test-vec)
+    => (match-and-unify '?v1 2 '?v2 2 '?l 3)))
+    ; ((m/and (m/vector '?first 2 3) (m/vector 1 '?v 3)) test-vec) => (match-and-unify '?first 1)))
 
 (facts "Using match macro"
   (fact "matching literal values"
