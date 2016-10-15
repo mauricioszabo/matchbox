@@ -68,9 +68,24 @@
               vs (core/map vals applied)]
           [ks vs])))))
 
+(defn- normalize-clj-name [name]
+  (-> name
+    (clojure.string/replace #"^(.+\.)?" "$1->")
+    (clojure.string/replace #"^(.+)\." "$1/")
+    (clojure.string/replace #"_BANG_" "!")
+    (clojure.string/replace #"_STAR_" "*")
+    (clojure.string/replace #"_PLUS_" "+")
+    (clojure.string/replace #"_GT_" ">")
+    (clojure.string/replace #"_GTE_" ">=")
+    (clojure.string/replace #"_LT_" "<")
+    (clojure.string/replace #"_LTE_" "<=")
+    (clojure.string/replace #"(eval\d+\$|__\d+)" "")
+    (clojure.string/replace #"_" "-")
+    (clojure.string/replace #"_" "-")))
+
 (defmacro record [record & args]
   (let [arglist (when (symbol? record)
-                  (some-> record name (clojure.string/replace #"^" "->")
+                  (some-> record name normalize-clj-name
                           symbol resolve meta :arglists first
                           (->> (core/map keyword) vec)))
         arguments (vec args)]

@@ -60,8 +60,12 @@
 (fact "Matching records"
   ((m/record Example '?a '?b) test-rec) => dont-match
   ((m/record Example2 '?a '?b '?c) test-rec) => dont-match
+  ((m/record Example '?a '?b '?c) test-rec) => (match-and-unify '?a 10 '?b 20 '?c 30)
+
   ((m/record 'Example3 '?a '?b '?c) test-rec) => dont-match
-  ((m/record Example '?a '?b '?c) test-rec) => (match-and-unify '?a 10 '?b 20 '?c 30))
+  ((m/record java.lang.Byte '?a '?b '?c) test-rec) => dont-match
+  ((m/record matcher.matchers_test.Example '?a '?b '?c) test-rec)
+  => (match-and-unify '?a 10 '?b 20 '?c 30))
 
 (facts "boolean matches"
   (fact "or applies first rule that matches"
