@@ -29,10 +29,10 @@
 
 ; Nested matchers
 (println (m/match some-ast
-           (m/list _ (m/list) (m/list _ ?number (m/list _ ?number ?other)))
+           (m/list _ list? (m/list _ ?number (m/list _ ?number ?other)))
            (str "Will not match - number must be the same in both places: " (+ number other))
 
-           (m/list _ (m/list & _) (m/list _ ?number (m/list _ ?other ?number)))
+           (m/list _ list? (m/list _ ?number (m/list _ ?other ?number)))
            (str "Will match: " (+ number other))))
 
 ; Boolean matches
