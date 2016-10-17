@@ -40,7 +40,6 @@
 (reduce insert-vec nil (range 20))
 
 ; With Records
-(require '[matchbox.matchers :as m])
 (defrecord Black [left value right])
 (defrecord Red [left value right])
 (defn balance-rec [tree]
