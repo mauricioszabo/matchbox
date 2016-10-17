@@ -62,19 +62,19 @@
            (m/and (m/vector ?a _ _ ?b) (m/vector _ ?a _ ?b)) "Will not match - ?a cannot be 3 and 2"
            (m/and (m/vector ?a _ _ ?b) (m/vector _ _ ?a ?b)) (+ a b)))
 
-; Records (Binary tree exampl)
-(defrecord Tree [value left right])
+; Records (Binary tree example)
+(defrecord Tree [left value right])
 (defn insert [tree new-value]
   (m/match tree
-    nil (->Tree new-value nil nil)
-    (m/record Tree ?value ?left ?right) (if (< new-value value)
-                                          (->Tree value (insert left new-value) right)
-                                          (->Tree value left (insert right new-value)))))
+    nil (->Tree nil new-value nil)
+    (m/record Tree ?left ?value ?right) (if (< new-value value)
+                                          (->Tree (insert left new-value) value right)
+                                          (->Tree left value (insert right new-value)))))
 
 (defn tree->list [tree]
   (m/match tree
     nil nil
-    (m/record Tree ?value ?left ?right) (concat (tree->list left) (cons value (tree->list right)))))
+    (m/record Tree ?left ?value ?right) (concat (tree->list left) (cons value (tree->list right)))))
 
 (-> nil
     (insert 10)
