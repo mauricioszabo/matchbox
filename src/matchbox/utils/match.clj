@@ -12,6 +12,7 @@
                    args)]
     (cond
       (seq? args) (apply list parsed)
+      (map-entry? args) (vec parsed)
       :else (into (empty args) parsed))))
 
 (declare apply-match)
