@@ -118,5 +118,6 @@
 
   (fact "applies inner params and anon functions"
     (m/match '(30 40 50)
+      (m/matches {:a ?b}) :foo
       (m/satisfies #(some #{-1 -2} %) ?r) r
       (m/satisfies #(some #{3 4 50 40} %) ?r) r) => 40))
