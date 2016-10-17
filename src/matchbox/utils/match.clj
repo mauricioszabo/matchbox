@@ -24,8 +24,8 @@
 
 (defn- apply-inner [[ls rs]]
   (if (and (coll? ls) (coll? rs) (= (count ls) (count rs)))
-    (loop [[first-ls & rest-ls] ls
-           [first-rs & rest-rs] rs
+    (loop [[first-ls & rest-ls] (seq ls)
+           [first-rs & rest-rs] (seq rs)
            [acc-ls acc-rs] [[] []]]
 
       (when-let [inner-res (recurse-into-result first-ls first-rs)]
