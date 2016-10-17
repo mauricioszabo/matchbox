@@ -27,32 +27,39 @@
   ((m/vector 1 '?foo 3) test-vec) => [[1 '?foo 3] [1 2 3]]
   ((m/vector 1 '& '?rest) test-vec) => [[1 '?rest] [1 '(2 3)]])
 
+(fact "Matching against any collection"
+  ((m/coll 1 2 3) '(1 2 3)) => match
+  ((m/coll 1 '?foo 3) test-vec) => (match-and-unify '?foo 2))
+
 (def test-map {:a 10, :b 20})
 (fact "Matching using unifier only"
   ((m/matches {:a '?a, '?b 20}) test-map) => [{:a '?a, '?b 20} {:a 10 :b 20}]
   ((m/matches {:a '?a, '?b 20}) test-vec) => [{:a '?a, '?b 20} [1 2 3]]
   ((m/matches [1 2 3]) test-vec) => [[1 2 3] [1 2 3]])
 
+(facts "Predicate matching with core functions"
+  ((m/satisfies even?) 10) => match
+  ((m/satisfies even? '?result) 10) => (match-and-unify '?result true)
+  ((m/satisfies even? '?result) "FOO") => dont-match)
+
 (facts "Matching against maps"
   (fact "simple matches"
-    ((m/map :a '?a) test-vec) => nil
-    ((m/map) test-map) => [[] []]
-    ((m/map :a '?a) test-map) => [[[[] ['?a]]] [[[] [10]]]]
-    ((m/map '?a 20) test-map) => [[[['?a] []]] [[[:b] []]]]
-    ((m/map '?a '?b) test-map) => [[[['?a] ['?b]]] [[[:a] [10]]]]
-    ((m/map '?a 20 '?b 10) test-map)
-    => [[[['?a] []] [['?b] []]] [[[:b] []] [[:a] []]]])
+    ((m/map :a '?a) test-vec) => dont-match
+    ((m/map) test-map) => match
+    ((m/map :a '?a) test-map) => (match-and-unify '?a 10)
+    ((m/map '?a 20) test-map) => (match-and-unify '?a :b)
+    ((m/map '?a '?b) test-map) => (match-and-unify '?a :a '?b 10)
+    ((m/map '?a 20 '?b 10) test-map) => (match-and-unify '?a :b '?b :a))
 
   (fact "composite matches"
-    ((m/map :a (m/list)) test-map) => nil
-    ((m/map :a 10 :b (m/list)) test-map) => nil
-    ((m/map '?a (m/list '& '_)) {:a 10, :b 20, :c '(1 2 3)})
-    => [[[['?a] []]] [[[:c] []]]]))
+    ((m/map :a (m/list)) test-map) => dont-match
+    ((m/map :a 10 :b (m/list)) test-map) => dont-match
+    ((m/map '?a (m/list '& '_)) {:a 10, :b 20, :c '(1 2 3)}) => (match-and-unify '?a :c)))
 
 (fact "Matching instances of some element"
-  ((m/instance? clojure.lang.PersistentList) '(1 2) ) => []
-  ((m/instance? clojure.lang.PersistentList) [1 2] ) => dont-match
-  ((m/instance? 10) [1 2] ) => dont-match)
+  ((m/instance clojure.lang.PersistentList) '(1 2) ) => []
+  ((m/instance clojure.lang.PersistentList) [1 2] ) => dont-match
+  ((m/instance 10) [1 2] ) => dont-match)
 
 (defrecord Example [a b c])
 (defrecord Example2 [a b c])
@@ -107,4 +114,10 @@
 
     (m/match '(1 2 (2 3) 4)
       (m/list ?a 2 (m/list ?a ?a) 4) :foo
-      (m/list 1 ?a (m/list ?a ?b) ?c) (+ a b c)) => 9))
+      (m/list 1 ?a (m/list ?a ?b) ?c) (+ a b c)) => 9)
+
+  (fact "applies inner params and anon functions"
+    (m/match '(30 40 50)
+      (m/matches {:a ?b}) :foo
+      (m/satisfies #(some #{-1 -2} %) ?r) r
+      (m/satisfies #(some #{3 4 50 40} %) ?r) r) => 40))

@@ -8,7 +8,8 @@
 (fact "parses args correctly from matchers"
   (utils/parse-args '(m/list ?arg _ 10 foo)) => '(m/list '?arg '_ 10 foo)
   (utils/parse-args '(m/list _ & _foo)) => '(m/list '_ '& _foo)
-  (utils/parse-args '(m/list ?arg _ (m/list ?b) foo)) => '(m/list '?arg '_ (m/list '?b) foo))
+  (utils/parse-args '(m/list ?arg _ (m/list ?b) foo)) => '(m/list '?arg '_ (m/list '?b) foo)
+  (utils/parse-args '(m/list [?b _ #{_ ?a}])) => '(m/list ['?b '_ #{'_ '?a}]))
 
 (def test-list (list 1 2 3))
 (facts "parses match args correcly"
@@ -40,6 +41,12 @@
          :foo
          :bar))
 
+  (fact "unwraps code if matcher is a set"
+    (utils/wrap-let 10 #{1 10} :foo :bar)
+    => `(if-let [~'foo (utils/match-and-unify 10 #{1 10})]
+         :foo
+         :bar))
+
   (fact "adds an let if there are unbound vars"
     (utils/wrap-let 'test-list '(m/list 10 (m/list 20) 30) ':foo ':bar)
     => `(if-let [~'foo (utils/match-and-unify ~'test-list (~'m/list 10
@@ -52,6 +59,14 @@
     => `(if-let [~'foo (utils/match-and-unify ~'test-list (~'m/list ~''?a
                                                                     (~'m/list ~''?a ~''?b)
                                                                     ~''_))]
+          (let [~'a (~''?a ~'foo)
+                ~'b (~''?b ~'foo)]
+            (~'+ ~'a ~'b))
+          :bar)
+
+    (utils/wrap-let 'test-list '(m/match {:a ?a :b ?b}) '(+ a b) ':bar)
+    => `(if-let [~'foo (utils/match-and-unify ~'test-list (~'m/match {:a ~''?a
+                                                                      :b ~''?b}))]
           (let [~'a (~''?a ~'foo)
                 ~'b (~''?b ~'foo)]
             (~'+ ~'a ~'b))

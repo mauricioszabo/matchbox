@@ -22,8 +22,20 @@
 (defn vector [ & rest]
   (fn [m] (when (vector? m) (check-elements m rest))))
 
+(defn coll [ & rest]
+  (fn [m] (when (coll? m) (check-elements m rest))))
+
 (defn matches [pattern]
   (fn [obj] [pattern obj]))
+
+(defn satisfies
+  ([pred-fn] (satisfies pred-fn '_))
+  ([pred-fn bind]
+   (fn [obj]
+     (try
+       (when-let [res (pred-fn obj)]
+         [bind res])
+       (catch Exception _)))))
 
 (defn- match-kv [elem [pattern-k pattern-v]]
   (let [[k v] elem
@@ -49,7 +61,7 @@
             (core/and m (recur forms submap acc)))
           [ls rs])))))
 
-(defn instance? [class]
+(defn instance [class]
   (fn [obj]
     (if (core/and (core/instance? java.lang.Class class)
                   (core/instance? class obj))
