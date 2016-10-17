@@ -1,5 +1,6 @@
 (ns matchbox.utils.match
   (:require [clojure.core.unify :as u]
+            [clojure.walk :as walk]
             [clojure.string :as str]))
 
 (defn parse-args [args]
@@ -59,7 +60,10 @@
 (defn wrap-let [obj match-fn then else]
   (let [var (gensym)
         norm-fn (cond-> match-fn (list? match-fn) parse-args)
-        unbound-vars (filter #(if (symbol? %) (-> % name (.startsWith "?"))) (flatten match-fn))
+        unbound-vars (->> match-fn
+                          (walk/prewalk #(if (coll? %) (seq %) %))
+                          flatten
+                          (filter #(if (symbol? %) (-> % name (.startsWith "?")))))
         let-clause (if (empty? unbound-vars)
                      then
                      (create-let unbound-vars var then))]

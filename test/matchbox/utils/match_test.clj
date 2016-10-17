@@ -62,6 +62,14 @@
           (let [~'a (~''?a ~'foo)
                 ~'b (~''?b ~'foo)]
             (~'+ ~'a ~'b))
+          :bar)
+
+    (utils/wrap-let 'test-list '(m/match {:a ?a :b ?b}) '(+ a b) ':bar)
+    => `(if-let [~'foo (utils/match-and-unify ~'test-list (~'m/match {:a ~''?a
+                                                                      :b ~''?b}))]
+          (let [~'a (~''?a ~'foo)
+                ~'b (~''?b ~'foo)]
+            (~'+ ~'a ~'b))
           :bar)))
 
 (facts "pattern matching without macros"
