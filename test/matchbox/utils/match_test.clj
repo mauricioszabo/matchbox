@@ -8,7 +8,8 @@
 (fact "parses args correctly from matchers"
   (utils/parse-args '(m/list ?arg _ 10 foo)) => '(m/list '?arg '_ 10 foo)
   (utils/parse-args '(m/list _ & _foo)) => '(m/list '_ '& _foo)
-  (utils/parse-args '(m/list ?arg _ (m/list ?b) foo)) => '(m/list '?arg '_ (m/list '?b) foo))
+  (utils/parse-args '(m/list ?arg _ (m/list ?b) foo)) => '(m/list '?arg '_ (m/list '?b) foo)
+  (utils/parse-args '(m/list [?b _ #{_ ?a}])) => '(m/list ['?b '_ #{'_ '?a}]))
 
 (def test-list (list 1 2 3))
 (facts "parses match args correcly"
@@ -37,6 +38,12 @@
   (fact "unwraps code if there are no sexps on match side"
     (utils/wrap-let 10 10 :foo :bar)
     => `(if-let [~'foo (utils/match-and-unify 10 10)]
+         :foo
+         :bar))
+
+  (fact "unwraps code if matcher is a set"
+    (utils/wrap-let 10 #{1 10} :foo :bar)
+    => `(if-let [~'foo (utils/match-and-unify 10 #{1 10})]
          :foo
          :bar))
 

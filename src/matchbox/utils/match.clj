@@ -2,15 +2,17 @@
   (:require [clojure.core.unify :as u]
             [clojure.string :as str]))
 
-(defn parse-args [[fun & args]]
+(defn parse-args [args]
   (let [parsed (map (fn [a]
-                      (cond
-                        (and (symbol? a) (->> a name (re-find #"^\?"))) `(~'quote ~a)
-                        (or (= a '_) (= a '&)) `(~'quote ~a)
-                        (coll? a) (parse-args a)
-                        :else a))
-                    args)]
-    (cons fun parsed)))
+                     (cond
+                       (and (symbol? a) (->> a str (re-find #"^\?"))) `(~'quote ~a)
+                       (or (= a '_) (= a '&)) `(~'quote ~a)
+                       (coll? a) (parse-args a)
+                       :else a))
+                   args)]
+    (cond
+      (seq? args) (apply list parsed)
+      :else (into (empty args) parsed))))
 
 (declare apply-match)
 (defn- recurse-into-result [possible-fn obj]
@@ -19,7 +21,7 @@
     [possible-fn obj]))
 
 (defn- apply-inner [[ls rs]]
-  (when (= (count ls) (count rs))
+  (if (and (coll? ls) (coll? rs) (= (count ls) (count rs)))
     (loop [[first-ls & rest-ls] ls
            [first-rs & rest-rs] rs
            [acc-ls acc-rs] [[] []]]
@@ -29,7 +31,8 @@
               acc [(conj acc-ls ls) (conj acc-rs rs)]]
           (if (empty? rest-ls)
             acc
-            (recur rest-ls rest-rs acc)))))))
+            (recur rest-ls rest-rs acc)))))
+    [ls rs]))
 
 (defn apply-match [obj match-fn]
   (if (fn? match-fn)
@@ -54,7 +57,7 @@
 
 (defn wrap-let [obj match-fn then else]
   (let [var (gensym)
-        norm-fn (cond-> match-fn (coll? match-fn) parse-args)
+        norm-fn (cond-> match-fn (list? match-fn) parse-args)
         unbound-vars (filter #(if (symbol? %) (-> % name (.startsWith "?"))) (flatten match-fn))
         let-clause (if (empty? unbound-vars)
                      then
