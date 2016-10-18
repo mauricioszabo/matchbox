@@ -61,6 +61,14 @@
             (core/and m (recur forms submap acc)))
           [ls rs])))))
 
+(defn regexp [re & binds]
+  (fn [str]
+    (when (string? str)
+      (when-let [[_ & rest] (re-find re str)]
+        (if (-> binds count zero?)
+          [[] []]
+          [binds rest])))))
+
 (defn instance [class]
   (fn [obj]
     (if (core/and (core/instance? java.lang.Class class)
