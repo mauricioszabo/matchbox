@@ -17,6 +17,14 @@
            (m/list ?f ?s even? even?) (str "List, last two are even, sum of first two: " (+ f s))
            _ "Didn't find a match"))
 
+; String matchers
+(m/match "foo@bar.com"
+  (m/regexp #"(.*)@(.*)" ?user ?domain) (println user "AT" domain))
+
+(m/match "foo@bar.com"
+  (m/regexp #"(.*)@(.*)" ?user) (println user)
+  (m/regexp #"(.*)@(.*)") (println "MATCHES!"))
+
 ; Predicate matchers
 (println (m/match 20
            odd? "It's odd"
