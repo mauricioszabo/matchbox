@@ -56,6 +56,12 @@
     ((m/map :a 10 :b (m/list)) test-map) => dont-match
     ((m/map '?a (m/list '& '_)) {:a 10, :b 20, :c '(1 2 3)}) => (match-and-unify '?a :c)))
 
+(fact "Matching strings"
+  (fact "matches regexp"
+    ((m/regexp #"(.*)@(.*)" "bar" '?b) "foo@bar") => dont-match
+    ((m/regexp #"(.*)@(.*)") "foo@bar") => match
+    ((m/regexp #"(.*)@(.*)" '?a '?b) "foo@bar") => (match-and-unify '?a "foo" '?b "bar")))
+
 (fact "Matching instances of some element"
   ((m/instance clojure.lang.PersistentList) '(1 2) ) => []
   ((m/instance clojure.lang.PersistentList) [1 2] ) => dont-match
