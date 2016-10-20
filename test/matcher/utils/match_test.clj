@@ -1,7 +1,7 @@
-(ns matchbox.utils.match-test
+(ns matcher.utils.match-test
   (:require [midje.sweet :refer :all]
-            [matchbox.utils.match :as utils]
-            [matchbox.matchers :as m]
+            [matcher.utils.match :as utils]
+            [matcher.matchers :as m]
             [clojure.core.unify :as u]))
 
 (def foo 10)

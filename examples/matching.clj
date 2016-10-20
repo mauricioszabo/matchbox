@@ -1,4 +1,4 @@
-(require '[matchbox.matchers :as m])
+(require '[matcher.matchers :as m])
 
 (def some-list '(1 2 40 50))
 

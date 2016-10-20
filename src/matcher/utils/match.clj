@@ -1,4 +1,4 @@
-(ns matchbox.utils.match
+(ns matcher.utils.match
   (:require [clojure.core.unify :as u]
             [clojure.walk :as walk]
             [clojure.string :as str]))
