@@ -1,4 +1,4 @@
-(require '[matchbox.matchers :as m])
+(require '[matcher.matchers :as m])
 
 ; Based on http://www.leonardoborges.com/writings/2013/07/15/purely-functional-data-structures-in-clojure-red-black-trees/
 (defn balance-vec [tree]
