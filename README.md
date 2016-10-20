@@ -1,5 +1,7 @@
 # Matcher
 
+[![Clojars Project](https://img.shields.io/clojars/v/matcher.svg)](https://clojars.org/matcher)
+
 Matcher is an extensible Clojure pattern matching library. It intends to be simple, extensible, powerful, and idiomatic - for example, `match` syntax is almost the same of `cond`, so no surprises here.
 
 The important keywords are **simple** - _matcher_ depends on `core.unify`, so all variable bindings are very simple, and all matchers are just curried functions, so they are partially evaluated every time, so no magic - and **extensible** - there are _no_ "built-in matchers - everything must be or a single value or a function. No strange huge and un-debuggable macros to deconstruct matchers.
