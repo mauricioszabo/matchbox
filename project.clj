@@ -1,4 +1,4 @@
-(defproject matcher "0.1.0"
+(defproject matcher "0.0.5"
   :description "Simple and extensive pattern-matching for Clojure"
   :url "https://github.com/mauricioszabo/matcher"
   :license {:name "Eclipse Public License"
