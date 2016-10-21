@@ -83,7 +83,7 @@ A possible use would be to match maps faster:
   (m/matches [[?a 10] & _]) "will match, because it treats all colls the same")
 ```
 
-* `satisfies` wraps a predicate (like `odd?`, `even`, etc) in a try-catch, so that they will not throw exceptions if called with wrong arguments. Furthermore, it allows another parameter that will try to unify with the predicate's result.
+* `satisfies` wraps a predicate (like `odd?`, `even`, etc) in a try-catch, so that they will not throw exceptions if called with wrong arguments. Furthermore, it allows another parameter that will try to unify with the predicate's result. `satisfies` does not accept inner matches - so, something like `(satisfies to-int odd?)` will not work.
 ```clojure
 (m/match "10"
   (m/satisfies even?) "will not match - it's not a number"
@@ -128,6 +128,49 @@ A possible use would be to match maps faster:
 ```
 
 ## Custom matchers
+One of the core ideas for Matcher is to be extensible - so, it's possible to define your own matcher on it.
+
+A matcher is simply a function that, when applied to the matching object, will return truthy or falsey. If you want to create a matcher that'll bind variables, you **need** to return a vector with exactly two elements. The "left side" is the parameters passed to test, if any; the "right side" is the matching part. This will be passed to `clojure.core.unify/unify`, and if that returns a map, it'll be a match. If the map have unbound variables (variables that starts with `?`, like `?foo`), let-variables will be created.
+
+One other thing is that if you want matcher to recurse into results (that is, if we want Matcher to test inner matchers), then we must assure that the left-side and right-side are colls (vectors, lists, maps or sets).
+
+For example, let's create a matcher that will ask what's the previous prime of that number, if any. First of all, remember that what the matcher will receive can be an integer, or not - so, we need to check for this too. Second, remember that the user can bind a variable on it, or can just check if the last-prime is a specific number (but `unify` will check for us, so we don't need to check for it).
+
+So, we'll define a function named `last-prime` that will expect an argument, and it'll return another function. This other function will: (1), check if the parameter passed to it is an integer; (2), check if the number is greater than `2` (because there's no primes before `2`), and (3), return a vector with what we expect the last-prime to be, and what the last-prime really is, wrapped in colls (first in a vector, second in a list):
+
+```clojure
+(defn last-prime [number]
+  (fn [possible-number]
+    (when (integer? possible-number)
+      [[number]
+       (->> (range possible-number 2 -1)
+            (remove (fn [x] (some #(-> x (rem %) zero?) (range 2 x))))
+            (take 1))])))
+```
+
+Simple code, line 5 to 7 calculates the prime, and assigns it to the second element of the vector. The first argument of the vector is just the number we expect. If the two numbers are different, `unify` will take care for us. If the first number is an unbound variable, it'll bind the variable for us. And, if the first argument is another matcher, then **Matcher** will take care for us. So, we can just use the matcher:
+
+```clojure
+(m/match 10
+  (last-prime 9) "Will not match - 9 is not even prime!"
+  (last-prime 5) "Will not match - it is not 5"
+  (last-prime even?) "Will not match - it's odd"
+  (last-prime odd?) "Will match - it's odd")
+```
+
+If we remove the "vector" over the number (line 4) and change `(take 1)` to `first`, we'll see that the matcher still works, but it'll not recurse into inner matches (like `odd?` or `even?` - these lines would always return false, and the code above would only check for unbound vars or numbers.
+
+### Custom and composite matchers
+There are matchers (like `and` and `or`) that need to know the result from previous matchers to be able to decide if they match or not. Let's see how to create a `not` matcher, one that negates the result of current matcher (please note: because of the way matchers work, this is _really_ a bad idea - unbound variables will all be bound to `nil`, for instance, but this is only an example).
+
+If we look at `last-prime`, for example, we can see that only running the matcher's function is not sufficient to check if there was a match or not. So, we need to import `matcher.utils.match`, a bunch of utility functions that recursively checks for matches:
+
+```clojure
+(require '[matcher.utils.match :as utils])
+(utils/match-and-unify 10 (last-prime 9)) ; => nil
+(utils/match-and-unify 10 (last-prime 7)) ; => {}
+(utils/match-and-unify 10 (last-prime '?n)) ; => {'?n 7}
+```
 
 ## License
 
