@@ -114,7 +114,9 @@
                   (core/instance? ~record ~'obj)
                   (core/or (= (count ~arguments) 0)
                            (= (count ~arguments) (count ~arglist))))
-         [~arguments (core/map #(get ~'obj %) ~arglist)]))))
+         (if (zero? (count ~arguments))
+           [[] []]
+           [~arguments (core/map #(get ~'obj %) ~arglist)])))))
 
 (defmacro match [obj & matches]
   (apply utils/match* obj matches))
