@@ -172,6 +172,22 @@ If we look at `last-prime`, for example, we can see that only running the matche
 (utils/match-and-unify 10 (last-prime '?n)) ; => {'?n 7}
 ```
 
+So, a `not` matcher would be just:
+
+```clojure
+(require '[matcher.utils.match :as utils])
+(defn not-matcher [matcher]
+  (fn [obj]
+    (when (not (utils/match-and-unify obj matcher))
+      true)))
+
+(m/match [1 2 3]
+  (not-matcher (m/vector 1 2 3)) "Will not match"
+  (not-matcher (m/list :foo :bar)) "Match!")
+```
+
+For more information, look at how `or` and `and` matchers are implemented.
+
 ## License
 
 Copyright © 2016 Maurício Szabo
