@@ -4,6 +4,9 @@
             [matcher.matchers :as m]
             [clojure.core.unify :as u]))
 
+(fact "unifies a shallow vector"
+  (utils/unify [[:a :b] [:a :b]]) => {})
+
 (def foo 10)
 (fact "parses args correctly from matchers"
   (utils/parse-args '(m/list ?arg _ 10 foo)) => '(m/list '?arg '_ 10 foo)

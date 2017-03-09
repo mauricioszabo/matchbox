@@ -45,6 +45,22 @@
         :else [[] []]))
     [[match-fn] [obj]]))
 
+(defn p [a] (println a) a)
+
+(clojure.string/starts-with? (str '?a) "?")
+(re-find #"^\?" (str '?a))
+
+(defn unify [[left right]]
+  (when (= (count left) (count right))
+    (let [un-symbol? #(and (symbol? %) (str/starts-with? (str %) "?"))
+          un (fn [l r] (if (or (un-symbol? l) (un-symbol? r))
+                         [l r]
+                         (= l r)))])
+    (->> right
+         (map un left)
+         (reduce #(some-> %1 ())
+                 {}))))
+
 (defn match-and-unify [obj match-fn]
   (some->> (apply-match obj match-fn)
            (apply u/unify)))
