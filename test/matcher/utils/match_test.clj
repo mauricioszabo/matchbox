@@ -4,8 +4,16 @@
             [matcher.matchers :as m]
             [clojure.core.unify :as u]))
 
-(fact "unifies a shallow vector"
-  (utils/unify [[:a :b] [:a :b]]) => {})
+(facts "about unifications"
+  (fact "unifies a shallow vector"
+    (utils/unify [[:a :b] [:a :b]]) => {}
+    (utils/unify [[:a :b] [:a :c]]) => nil)
+
+  (fact "unifies when there are unification variables"
+    (utils/unify [['?a :b] [:a :b]]) => {'?a :a}
+    (utils/unify [['?a :b] [:b :b]]) => {'?a :b}
+    (utils/unify [['?a '?a] [:a :b]]) => nil
+    (utils/unify [['?a '?a] [:b :b]]) => {'?a :b}))
 
 (def foo 10)
 (fact "parses args correctly from matchers"
