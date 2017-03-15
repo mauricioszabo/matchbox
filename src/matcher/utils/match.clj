@@ -1,6 +1,5 @@
 (ns matcher.utils.match
-  (:require [clojure.core.unify :as u]
-            [clojure.walk :as walk]
+  (:require [clojure.walk :as walk]
             [clojure.string :as str]))
 
 (defn parse-args [args]
