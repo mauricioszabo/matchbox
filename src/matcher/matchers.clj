@@ -120,22 +120,3 @@
 
 (defmacro match [obj & matches]
   (apply utils/match* obj matches))
-
-(defn insert [tree n]
-  (match tree
-    nil? [nil n nil]
-    (vector ?left ?val ?right) (if (< n val)
-                                 [(insert left n) val right]
-                                 [left val (insert right n)])))
-
-(time
- (do
-   (reduce #(insert %1 %2) nil (range 100))
-   nil))
-; (-> nil
-;     (insert 10)
-;     (insert 20)
-;     (insert 1)
-;     (insert 70)
-;     (insert 7)
-;     clojure.pprint/pprint)
