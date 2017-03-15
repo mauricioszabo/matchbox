@@ -21,6 +21,13 @@
     (apply-match obj possible-fn)
     [possible-fn obj]))
 
+(defn- combine-sides [acc-ls acc-rs inner-res]
+  (let [concatv #(-> %1 (concat %2) vec)
+        [ls rs] inner-res]
+    (if (and (coll? ls) (coll? rs))
+      [(concatv acc-ls ls) (concatv acc-rs rs)]
+      [(conj acc-ls ls) (conj acc-rs rs)])))
+
 (defn- apply-inner [[ls rs]]
   (if (and (coll? ls) (coll? rs) (= (count ls) (count rs)))
     (loop [[first-ls & rest-ls] (seq ls)
@@ -28,8 +35,7 @@
            [acc-ls acc-rs] [[] []]]
 
       (when-let [inner-res (recurse-into-result first-ls first-rs)]
-        (let [[ls rs] inner-res
-              acc [(conj acc-ls ls) (conj acc-rs rs)]]
+        (let [acc (combine-sides acc-ls acc-rs inner-res)]
           (if (empty? rest-ls)
             acc
             (recur rest-ls rest-rs acc)))))

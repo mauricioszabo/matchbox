@@ -37,9 +37,9 @@
   (utils/apply-match 10 20)
   => [[20] [10]]
   (utils/apply-match inner-list (m/list 1 (m/list 2 3) 4))
-  => [[1 [2 3] 4] [1 [2 3] 4]]
+  => [[1 2 3 4] [1 2 3 4]]
   (utils/apply-match inner-list (m/list '?a (m/list '?a '?b) 4))
-  => [['?a ['?a '?b] 4] [1 [2 3] 4]]
+  => [['?a '?a '?b 4] [1 2 3 4]]
   (utils/apply-match test-list (m/list 1 (m/list 2 3) 4)) => nil)
 
 (facts "matching patterns"
