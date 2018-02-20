@@ -29,13 +29,18 @@
   (fn [obj] [pattern obj]))
 
 (defn satisfies
-  ([pred-fn] (satisfies pred-fn '_))
+  ([pred-fn]
+   (fn [obj]
+     (try
+       (when (pred-fn obj)
+         [])
+       (catch Throwable _))))
   ([pred-fn bind]
    (fn [obj]
      (try
        (when-let [res (pred-fn obj)]
-         [bind res])
-       (catch Exception _)))))
+         [[bind] [res]])
+       (catch Throwable _)))))
 
 (defn- match-kv [elem [pattern-k pattern-v]]
   (let [[k v] elem
