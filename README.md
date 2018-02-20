@@ -4,7 +4,14 @@
 
 Matcher is an extensible Clojure pattern matching library. It intends to be simple, extensible, powerful, and idiomatic - for example, `match` syntax is almost the same of `cond`, so no surprises here.
 
-The important keywords are **simple** - _matcher_ depends on `core.unify`, so all variable bindings are very simple, and all matchers are just curried functions, so they are partially evaluated every time, so no magic - and **extensible** - there are _no_ "built-in matchers - everything must be or a single value or a function. No strange huge and un-debuggable macros to deconstruct matchers.
+The important keywords are:
+
+* **simple** - _matcher_ uses the same format as `core.unify`, so variable bindings are
+the same as unify (?a, ?b, etc), and all matchers are just curried functions, so they
+are partially evaluated every time (no magic involved)
+
+* **extensible** - there are _no_ "built-in matchers - everything must be or a single
+value or a function. No strange, huge and un-debuggable macros to deconstruct matchers.
 
 ## Usage
 
@@ -28,20 +35,29 @@ The namespace `matcher.matches` contains a bunch of *matcher functions*. These a
   (m/list ?first ?second 3) (+ first second))
 ```
 
-The code above will try to match a list (it will **not** match vectors or maps) that have three elements, and the third is `3`. It will bind the first element to the local variable `first` and will bind the second variable to `second`.
+The code above will try to match a list (it will **not** match vectors or maps) that have
+three elements, and the third is `3`. It will bind the first element to the local variable
+`first` and will bind the second variable to `second`.
 
 More examples can be found on the `examples` directory.
 
 ## Matcher Functions
 
-Any function that receive only one argument, and return true or false, can be used as a matcher. So, `odd?`, `even?`, `map?` and such can be used as matchers, but they _will not_ bind variables nor check for exceptions. So, the code below will throw an error because `"10"` is not a number:
+Any function that receive only one argument, and return true or false, can be used as a
+matcher. So, `odd?`, `even?`, `map?` and such can be used as matchers, but they _will not_
+bind variables nor check for exceptions. So, the code below will throw an error because
+`"10"` is not a number:
 
 ```clojure
 (m/match "10"
   odd? "It's a wild world...")
 ```
 
-To avoid exceptions and bind variables to the match functions, it is better to use a specific _matcher function_. One of these functions is `satisfies` that will wrap the predicate in a try-catch, and it'll allow us to capture the result of predicate. The code below, for instance, returns `40`, the result of the only `some` that matches (the second one):
+To avoid exceptions and bind variables to the match functions, it is better to use a
+specific _matcher function_. One of these functions is `satisfies` that will wrap the
+predicate in a try-catch, and it'll allow us to capture the result of predicate. The code
+below, for instance, returns `40`, the result of the only `some` that matches (the second
+one):
 
 ```clojure
 (m/match '(10 20 30 40 50)
@@ -49,7 +65,10 @@ To avoid exceptions and bind variables to the match functions, it is better to u
   (m/satisfies #(some #{3 4 50 40} %) ?r) (str "Positive number found: " r))
 ```
 
-Please notice that matchers are **not** special in any way - they're just Clojure functions. `satisfies`, for instance, is just a function that returns another function, wrapping the check in a try-catch block. You could, for instance, check what `satisfies` returns by just running it by hand (and quoting `?r` and other symbols):
+Please notice that matchers are **not** special in any way - they're just Clojure
+functions. `satisfies`, for instance, is just a function that returns another function,
+wrapping the check in a try-catch block. You could, for instance, check what `satisfies`
+returns by just running it by hand (and quoting `?r` and other symbols):
 
 ```clojure
 (m/satisfies #(some #{3 4 50 40} %) '?r) ; => returns a function
@@ -59,7 +78,12 @@ Please notice that matchers are **not** special in any way - they're just Clojur
 
 On `matcher.matchers` namespace, there are already a bunch of matchers prepared (with examples):
 
-* `list`, `vector`, and `coll` - matchers for collections. To correcly match, you need to either provide each individual element or use `&` to match the rest of the list. For example `(list)` will match any empty list (but not vector), `(vector 10 & _)` matches any vector that begins with `10`, and `(coll 10 20)` will match either a list or vector with two elements, `10` and `20`.
+* `list`, `vector`, and `coll` - matchers for collections. To correcly match, you need to
+either provide each individual element or use `&` to match the rest of the list. For
+example `(list)` will match any empty list (but not vector), `(vector 10 & _)` matches
+any vector that begins with `10`, and `(coll 10 20)` will match either a list or vector
+with two elements, `10` and `20`.
+
 ```clojure
 (m/match [1 2 3 4]
   (m/list 1 2 3 4) "won't match - its not a list"
