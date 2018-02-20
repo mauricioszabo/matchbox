@@ -1,17 +1,17 @@
 (ns matcher.matchers-test
   (:require [midje.sweet :refer :all]
             [matcher.matchers :as m]
-            [clojure.core.unify :as u]))
+            [matcher.utils.match :as utils]))
 
 (defn match-and-unify [ & {:as map}]
   (fn [obj]
-    (= map (apply u/unify obj))))
+    (= map (utils/unify obj))))
 
 (defn dont-match [obj]
-  (or (nil? obj) (nil? (apply u/unify obj))))
+  (or (nil? obj) (utils/unify obj)))
 
 (defn match [obj]
-  (= {} (apply u/unify obj)))
+  (= {} (utils/unify obj)))
 
 (def test-list (list 1 2 3))
 (fact "Matching against lists"

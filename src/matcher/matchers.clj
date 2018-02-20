@@ -67,7 +67,7 @@
       (when-let [[_ & rest] (re-find re str)]
         (if (-> binds count zero?)
           [[] []]
-          [binds rest])))))
+          [(vec binds) (vec rest)])))))
 
 (defn instance [class]
   (fn [obj]
