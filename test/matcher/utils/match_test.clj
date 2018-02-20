@@ -12,7 +12,8 @@
   (fact "unifies when there are unification variables"
     (utils/unify [['?a :b] [:a :b]]) => {'?a :a}
     (utils/unify [['?a :b] [:b :b]]) => {'?a :b}
-    (utils/unify [['?a '?a] [:a :b]]) => nil
+    (utils/unify [['?a '?a ] [1 2]]) => nil
+    (utils/unify [['?a '?a '?a ] [1 2 3]]) => nil
     (utils/unify [['?a '?a] [:b :b]]) => {'?a :b}))
 
 (def foo 10)

@@ -61,10 +61,11 @@
       (->> right
            (map un left)
            (reduce (fn [unifications pair]
-                     (case pair
-                       (false nil) nil
-                       true unifications
-                       (unify' unifications pair)))
+                     (when unifications
+                       (case pair
+                         (false nil) nil
+                         true unifications
+                         (unify' unifications pair))))
                  {})))))
 
 (defn match-and-unify [obj match-fn]
