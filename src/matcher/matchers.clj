@@ -42,29 +42,16 @@
          [[bind] [res]])
        (catch Throwable _)))))
 
-(defn- match-kv [elem [pattern-k pattern-v]]
-  (let [[k v] elem
-        k-match (utils/match-and-unify k pattern-k)
-        v-match (utils/match-and-unify v pattern-v)]
-    (when (core/and k-match v-match)
-      (let [ls-k (-> k-match keys vec)
-            rs-k (-> k-match vals vec)
-            ls-v (-> v-match keys vec)
-            rs-v (-> v-match vals vec)]
-        [elem [ls-k ls-v] [rs-k rs-v]]))))
+(defn- check-map-pattern [obj map]
+  [[] []])
 
 (defn map [ & pattern]
   (fn [obj]
     (when (core/and (map? obj) (even? (count pattern)))
-      (loop [[pattern & forms] (partition 2 pattern)
-             map (set obj)
-             [ls rs] [[] []]]
-        (if pattern
-          (let [[m l r] (some #(match-kv % pattern) map)
-                submap (disj map m)
-                acc [(conj ls l) (conj rs r)]]
-            (core/and m (recur forms submap acc)))
-          [ls rs])))))
+      (check-map-pattern obj (into {} (->> pattern
+                                           (partition 2)
+                                           (mapv vec)
+                                           (into {})))))))
 
 (defn regexp [re & binds]
   (fn [str]
