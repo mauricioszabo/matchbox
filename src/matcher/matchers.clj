@@ -43,7 +43,10 @@
        (catch Throwable _)))))
 
 (defn- check-map-pattern [obj map]
-  [[] []])
+  (let [keys (keys map)
+        dont-match (Object.)
+        values (vec (vals map))]
+    [values (mapv #(get obj % dont-match) keys)]))
 
 (defn map [ & pattern]
   (fn [obj]
