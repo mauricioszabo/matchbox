@@ -14,7 +14,10 @@
     (utils/unify [['?a :b] [:b :b]]) => {'?a :b}
     (utils/unify [['?a '?a ] [1 2]]) => nil
     (utils/unify [['?a '?a '?a ] [1 2 3]]) => nil
-    (utils/unify [['?a '?a] [:b :b]]) => {'?a :b}))
+    (utils/unify [['?a '?a] [:b :b]]) => {'?a :b})
+
+  (fact "unifies deep forms"
+    (utils/unify [[even?] [10]]) => {}))
 
 (def foo 10)
 (fact "parses args correctly from matchers"
